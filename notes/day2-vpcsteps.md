@@ -84,7 +84,7 @@ The VPC now exists, but it has nothing in it. We want some subnets to separate o
 
 - under security groups, click 'create security group'. name it according to convention.
 
-- under the SG rules, leave SSH as is. then add a new group, and change the port to 27107.
+- under the SG rules, leave SSH as is. then add a new group, and change the port to 27017.
 
 - change the source to 10.0.2.0/24. that allows our own public subnet to access the DB instance, but doesn't allow access from any public IP. it's more specific/secure.
 
@@ -116,9 +116,11 @@ NOTE: WHEN CONNECTING TO THIS INSTANCE VIA SSH, CHANGE 'ROOT' TO 'UBUNTU' ON THE
 
 ---
 
-## USER DATA FOR THE INSTANCES:
+## USER DATA FOR THE APP INSTANCE:
 
-sleep 15
+#!/bin/bash
+
+sleep 20
 
 cd /home/ubuntu
 
@@ -135,16 +137,3 @@ node seeds/seed.js
 sudo npm install
 
 pm2 start app.js
-
-sudo chown -R mongodb:mongodb /var/lib/mongodb
-sudo chown mongodb:mongodb /tmp/mongodb-27017.sock  
-sudo service mongod restart
-
-App SG:
-
-SSH (port 22) --> 0.0.0.0/0
-HTTP (port 80) --> 0.0.0.0/0
-
-DB SG:
-SSH (port 22) --> 0.0.0.0/0
-MongoDB (port 27017) --> 0.0.0.0/0 or app IP
