@@ -150,7 +150,8 @@ The VPC now exists, but it has nothing in it. We want some subnets to separate o
 
 - Under 'Advanced settings,' in the 'user data' form at the bottom of the screen, we can write a script containing deployment commands that AWS will run upon launching the instance. Here is an example using the commands necessary to launch the Sparta test app and placeholder database.
 
-```#!/bin/bash
+```
+#!/bin/bash
 
 sleep 20
 
