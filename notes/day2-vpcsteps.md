@@ -146,11 +146,11 @@ The VPC now exists, but it has nothing in it. We want some subnets to separate o
 
 - This should connect us to the instance. From here we can input the commands necessary to start up the app.
 
-## Leveraging the 'user data' form to automate deployment of the app.
+### Leveraging the 'user data' form to automate deployment of the app.
 
 - Under 'Advanced settings,' in the 'user data' form at the bottom of the screen, we can write a script containing deployment commands that AWS will run upon launching the instance. Here is an example using the commands necessary to launch the Sparta test app and placeholder database.
 
-#!/bin/bash
+```#!/bin/bash
 
 sleep 20
 
@@ -158,10 +158,11 @@ cd /home/ubuntu
 
 cd se-app-deployment-files/nodejs20-se-test-app-2025/app
 
-export DB_HOST=mongodb://<IP of DB here>:27017/posts
+export DB_HOST=mongodb://[IP of DB here]:27017/posts
 
 node seeds/seed.js
 
 sudo npm install
 
 pm2 start app.js
+```
