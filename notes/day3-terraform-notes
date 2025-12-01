@@ -1,0 +1,9 @@
+## terraform!
+
+!!! initially make sure your credentials for AWS or whatever are appropriate for the project. use the AWS CLI to view and set credentials.
+
+- to make an EC2 instance:
+
+- firstly provision a provider, e.g. AWS, and run 'terraform init' to download deps and plugins.
+
+- provision a resource, with the service e.g. 'aws_instance' and a name for the specific resource, like 'basic_instance' or 'my_first_instance'

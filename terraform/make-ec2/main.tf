@@ -149,6 +149,10 @@ resource "aws_instance" "db_instance" {
 }
 
 # Create an EC2 instance for the app from my own AMI.
+
+# On the subject of the DB private IP: this method here works because all of my resources are
+# in the same folder. More normally, resources would not be held in one file, and in that case,
+# we would have to use templates with modules and output blocks. 
 resource "aws_instance" "app_instance" {
   # AMI ID
   ami                         = var.app_instance_ami
