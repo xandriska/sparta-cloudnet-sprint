@@ -1,114 +1,130 @@
-## MAKING A VPC
+# Step-by-step instructions on how to provision two EC2 instances - an app and a database - with secure network settings.
 
-- The VPC will have a CIDR block. 10.0.0.0/16 (everything inside starts with 10.0., then the other 2 spots are open.)
+## Making a VPC on AWS Console
+
+- The VPC will need a CIDR block. 10.0.0.0/16 (Everything inside starts with 10.0., then the other 2 spots are open.)
 
 - Inside the VPC we will have 2 subnets.
 
-  - Public subnet. CIDR block (smaller range) 10.0.2.0/24 (everything inside starts with 10.0.2., then the last one is open.)
+  - A public subnet. CIDR block 10.0.2.0/24 (Everything inside starts with 10.0.2., then the last one is open.)
 
-  - Private subnet. CIDR block 10.0.3.0/24
+  - A private subnet. CIDR block 10.0.3.0/24
 
-- the public subnet will have a security group and a route table that communicates with the router and the internet gateway.
+- The public subnet will need a security group and a route table that communicates with the router and the internet gateway.
 
-- the private subnet will have its own security group with a default route table to allow the private subnet to receive information from the router/internet/public domain (including the public subnet, i.e. our app)
+- The private subnet will have its own security group with a default route table to allow the private subnet to receive information from the router/internet/public domain (including the public subnet, i.e. our app).
 
 ![alt text](<Screenshot from 2025-11-25 11-53-26.png>)
 
-## STEP BY STEP.
+## Making a VPC - step by step.
 
 - In AWS, search "VPC" to find the VPC resource dashboard.
 
-- Create VPC button
+- Click the 'Create VPC' button.
 
-- Click 'VPC only.' (no shortcuts!)
+- Click 'VPC only.'
 
-- give it a name.
+- Give it a name. It's good to name it according to a convention or to show its relation to a certain project.
 
-- give it a CIDR block range. in our case 10.0.0.0/16 rather than the smaller 24.
+- Give it a CIDR block range. In our case 10.0.0.0/16, rather than the smaller 24.
 
-- no IPv6 CIDR block.
+- No IPv6 CIDR block.
 
-- tenancy. dedicated costs more and is more secure yet still public. we'll use default.
+- Tenancy: 'Dedicated' costs more and is more secure yet still public. We'll use default.
 
-- encryption control - not needed now.
+- Encryption control: not needed now.
 
 ![alt text](<Screenshot from 2025-11-25 15-27-01.png>)
 
-- click 'Create VPC'
+- Click 'Create VPC'.
 
 The VPC now exists, but it has nothing in it. We want some subnets to separate our public resources/instances from our private ones.
 
+## Making subnets - step by step.
+
 - Now go to 'subnets' on the left hand side menu.
 
-- click 'create subnet'
+- click 'Create subnet'.
 
-- it will ask what VPC to use to house this subnet. find the one we just made.
+- It will ask what VPC to use to house this subnet. Find the one we just made.
 
-- under Settings, name the subnet, select the availability zone and add the CIDR block. first let's make the public subnet, so put this under 'name', choose an appropriate AZ, then enter the CIDR block we want to use.
+- Under Settings, name the subnet, select the availability zone (any is fine) and add the CIDR block. First let's make the public subnet, so when we name it, include 'public' somewhere, e.g. 'se-georgina-public-subnet'. The availability zone can be any that pop up as an option, but it can be sensible to put different subnets in different AZs. The CIDR block will be 10.0.2.0/24.
 
-- we can add another subnet here before creating. follow the same process for the private subnet. you can put the private subnet in a different AZ for resilience.
+- We can add another subnet here before creating. Follow the same process for the private subnet, but include 'private' in the name, and under CIDR block, put '10.0.3.0/24'. Again, you can put the private subnet in a different AZ, for resilience.
 
-- now click 'create subnet' to create the subnets.
+- Now click 'create subnet' to create the subnets.
 
 ![alt text](<Screenshot from 2025-11-25 15-38-33-1.png>)
 
 ![alt text](<Screenshot from 2025-11-25 15-39-21.png>)
 
-- now we need an internet gateway. this is an option on the left hand side menu again from VPC dashboard, then go to 'create internet gateway'
+## Making and attaching an internet gateway.
 
-- click green attach vpc button, select our VPC and attach
+- Now we need an internet gateway. This is an option on the left hand side menu again from VPC dashboard. Then go to 'create internet gateway'.
 
-- now we shall make route tables. there is already a 'default' route table which should work on our PRIVATE subnet. but we will need to make a public route table.
+- Click green 'attach VPC' button that pops up, select our VPC, and attach.
 
-- go to route tables, create route tables, name it (the public one remember) and associate it with the VPC.
+- Now we shall make route tables. There is already a 'default' route table which should work on our PRIVATE subnet. But for the public subnet that will house our app, we need a public route table.
 
-- subnet associations tab, then edit subnet associations
+- Go to 'route tables', 'create route tables', name the table according to convention (it's for the public subnet remember!) and associate it with our VPC.
 
-- associate the RT with the public subnet.
+- Under the 'subnet associations' tab, click 'edit subnet associations'.
 
-- this just dupes the default. so now: edit routes in actions
+- Associate the public route table with the public subnet.
 
-- then add the route. 0.0.0.0/0 for general internet, and give it our internet gateway as a target.
+- This just duplicates the default settings, so now we need to edit the route. In the Actions drop-down, click "edit route".
+
+- Then add the route. It's '0.0.0.0/0' for general internet, so we can use that CIDR block. The target should be the internet gateway we just created.
 
 ---
 
-## DEPLOYING A DATABASE IN A PRIVATE SUBNET
+## Deploying a Mongo DB database in a private subnet.
 
-- launch a database instance. BUT we need some new network settings:
+- Begin the process of launching an instance by going to the EC2 dashboard and clicking the orange 'Launch instance' button.
 
-- for the private subnet, under network settings, we need our own just-created VPC.
+- Name the instance according to convention or project.
 
-- now under subnets, our own subnets should appear. here we want to choose the private one.
+- For the purposes of this guide, we assume that we have access to an AMI (Amazon Machine Image) with a Mongo DB database already installed. Under the Machine Image header, choose the custom one we've prepared earlier.
 
-- make sure public IP is set to Disable. we don't want it to assign a public IP to the database instance.
+- Use an established key-pair that is associated with a .pem file that is stored locally and given correct permissions.
 
-- under security groups, click 'create security group'. name it according to convention.
+- Under network settings, we'll need to launch this instance in our just-created VPC, so choose it from the drop-down.
 
-- under the SG rules, leave SSH as is. then add a new group, and change the port to 27017.
+- Now under subnets, our own just-created subnets should appear. Here we want to choose the private one.
 
-- change the source to 10.0.2.0/24. that allows our own public subnet to access the DB instance, but doesn't allow access from any public IP. it's more specific/secure.
+- Make sure the auto-assign public IP option is set to Disable. We don't want to automatically assign a public IP to the database instance, because we want it to stay private and prevent public access.
 
-- click launch instance.
+- Under security groups, click 'create security group'. Name it according to convention.
 
-NOTE: WHEN CONNECTING TO THIS INSTANCE VIA SSH, CHANGE 'ROOT' TO 'UBUNTU' ON THE COMMAND LINE!! CAUSE WE'RE LAUNCHING FROM AN IMAGE BABES. (but right now we can't actually connect to this instance via SSH because it's not accessible, it's in a private subnet. BUT it is accessible from an instance in the PUBLIC subnet we've created because we've given THAT thing access in the security group.)
+- Under the SG rules, leave SSH as is. Then add a new Custom group, and change the port number to 27017.
+
+- Change the source to '10.0.2.0/24'. That allows our own public subnet (therefore our app) to access the DB instance, but doesn't allow access from just any public IP.
+
+- Click 'launch instance.'
 
 ![alt text](<Screenshot from 2025-11-25 15-52-38.png>)
 
 ![alt text](<Screenshot from 2025-11-25 15-53-14.png>)
 
-## DEPLOYING APP INSTANCE IN PUBLIC SUBNET
+## Deploying a Node.js app instance in the public subnet.
 
-- launch an app instance. new network settings:
+- Launch another instance, and this time include 'app' somewhere in the name so we can differentiate it from the DB.
 
-- use the VPC we've created.
+- For the purposes of this guide, we assume that we have access to an AMI (Amazon Machine Image) with a Node app already installed. Under the Machine Image header, choose the custom one we've prepared earlier.
 
-- use the public subnet.
+- Use an established key-pair that is associated with a .pem file that is stored locally and given correct permissions.
 
-- change the auto-assign IP address to Enable.
+- This time our network settings should be:
 
-- we still want the normal SSH rule.
+- Again, use the VPC we've just created.
 
-- add a new group rule to allow HTTP traffic on port 80. HTTP is under 'type'. source can be 0.0.0.0/0.
+- Use the public subnet this time.
+
+- Change the auto-assign IP address option to Enable. Now that we're launching a public app instance, assigning it a public IP is fine.
+
+- We still want the normal SSH rule.
+
+- Add a new group rule to allow HTTP traffic on port 80. HTTP is under 'type'. Source can be 0.0.0.0/0.
 
 ![alt text](<Screenshot from 2025-11-25 15-56-16.png>)
 
@@ -116,7 +132,23 @@ NOTE: WHEN CONNECTING TO THIS INSTANCE VIA SSH, CHANGE 'ROOT' TO 'UBUNTU' ON THE
 
 ---
 
-## USER DATA FOR THE APP INSTANCE:
+## Deploying the app with the database.
+
+- To deploy the app and database together, we can either manually input commands to the terminal by logging in using SSH, or we can use 'user data'. To use SSH, first launch the instance. Using User Data will require one more step before launching.
+
+### SSH:
+
+- When the app instance is launched, click on the instance information and click 'Connect.' Make sure .pem is selected, and then copy the terminal command provided.
+
+- In the terminal, navigate to the /.ssh folder.
+
+- Paste the command that AWS provided. If the instance was launched from a machine image, as per these instructions, we'll need to chane the IP address in the command from "root@..." to "ubuntu@...".
+
+- This should connect us to the instance. From here we can input the commands necessary to start up the app.
+
+## Leveraging the 'user data' form to automate deployment of the app.
+
+- Under 'Advanced settings,' in the 'user data' form at the bottom of the screen, we can write a script containing deployment commands that AWS will run upon launching the instance. Here is an example using the commands necessary to launch the Sparta test app and placeholder database.
 
 #!/bin/bash
 
@@ -124,11 +156,7 @@ sleep 20
 
 cd /home/ubuntu
 
-mine: cd se-app-deployment-files/nodejs20-se-test-app-2025/app
-
-luke's: cd se-sparta-test-app/app
-
-- export env variables for db here:
+cd se-app-deployment-files/nodejs20-se-test-app-2025/app
 
 export DB_HOST=mongodb://<IP of DB here>:27017/posts
 
